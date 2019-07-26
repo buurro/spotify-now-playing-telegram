@@ -4,4 +4,4 @@ token = TOKEN
 [spotify]
 client_id = CLIENT_ID
 client_secret = CLIENT_SECRET
-client_redirect = http://localhost/
+client_redirect = http://localhost:8888/spotify/callback

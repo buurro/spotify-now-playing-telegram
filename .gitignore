@@ -1,0 +1,8 @@
+venv
+config.ini
+.vscode
+.idea
+usercreds.json
+database.sqlite
+*.pyc
+__pycache__

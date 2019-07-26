@@ -1,6 +1,5 @@
 [telegram]
 token = TOKEN
-bot_url = https://t.me/spnpbot
 
 [spotify]
 client_id = CLIENT_ID

@@ -38,7 +38,7 @@ class SpotifyCallback(tornado.web.RequestHandler):
                     orm.commit()
 
                 bot.sendMessage(callback_state, 'It works!')
-                self.redirect(config['telegram']['bot_url'])
+                self.redirect('https://t.me/' + bot.username)
 
         else:
             self.write('spotify no code')

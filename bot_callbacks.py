@@ -41,12 +41,17 @@ def inlinequery(update, context):
 
     spoti = spt
     spoti.user_creds = user_creds
-    current_song = spoti.currently_playing()['item']  ### TODO: handle no songs playing
-    print(current_song)
-    song_title = current_song['name']
-    song_artist = current_song['artists'][0]['name']
-    song_url = current_song['external_urls']['spotify']
-    thumb = current_song['album']['images'][-1]
+
+    current_status = spoti.currently_playing()#['item']  ### TODO: handle no songs playing
+    if current_status:
+        song = spoti.currently_playing()['item']
+    else: # no songs currently playing
+        song = spoti.recently_played_tracks(limit=1)['items'][0]['track'] # get the last played song
+    print(song)
+    song_title = song['name']
+    song_artist = song['artists'][0]['name']
+    song_url = song['external_urls']['spotify']
+    thumb = song['album']['images'][-1]
     results = [
         InlineQueryResultArticle(
             id=uuid4(),

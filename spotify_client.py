@@ -6,7 +6,7 @@ spt = Spotify()
 client = ClientCreds(client_id=config['spotify']['client_id'],
                      client_secret=config['spotify']['client_secret'],
                      redirect_uri=config['spotify']['client_redirect'],
-                     scopes=['user-read-currently-playing'])
+                     scopes=['user-read-recently-played', 'user-read-playback-state'])
 spt.client_creds = client
 
 def get_credentials(user):

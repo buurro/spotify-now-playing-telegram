@@ -18,7 +18,7 @@ msgpack==0.6.1
 multidict==4.5.2
 pony==0.7.10
 pycparser==2.19
-pyfy==1.2.2
+pyfy==2.0.2
 pylint==2.3.1
 PySocks==1.6.8
 python-telegram-bot==12.0.0b1

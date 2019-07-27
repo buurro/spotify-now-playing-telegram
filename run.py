@@ -17,6 +17,9 @@ def main():
 
     app = tornado.web.Application(urls)
     app.listen(8888)
+
+    print('Bot is running!')
+
     tornado.ioloop.IOLoop.current().start()
 
 if __name__ == '__main__':

@@ -4,6 +4,7 @@ from web_views import urls
 from bot_handlers import command_handlers
 from utils import updater
 
+
 def main():
 
     # Get the dispatcher to register handlers
@@ -18,9 +19,10 @@ def main():
     app = tornado.web.Application(urls)
     app.listen(8888)
 
-    print('Bot is running!')
+    print("Bot is running!")
 
     tornado.ioloop.IOLoop.current().start()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

@@ -72,7 +72,9 @@ def inlinequery(update, context):
             thumb_height=thumb["height"],
             input_message_content=InputTextMessageContent(
                 "🎵 [{}]({}) by {}".format(
-                    escape_markdown(song_title), song_url, song_artist
+                    escape_markdown(song_title),
+                    song_url,
+                    escape_markdown(song_artist)
                 ),
                 parse_mode=ParseMode.MARKDOWN,
             ),

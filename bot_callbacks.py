@@ -1,7 +1,14 @@
 from uuid import uuid4
 from pony import orm
-from telegram import ParseMode, InlineQueryResultArticle, InputTextMessageContent
+from telegram import (
+    ParseMode,
+    InlineQueryResultArticle,
+    InputTextMessageContent,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+)
 from telegram.utils.helpers import escape_markdown
+from datetime import datetime
 
 from models import User
 from spotify_client import spt, get_credentials
@@ -48,16 +55,16 @@ def inlinequery(update, context):
     spoti = spt
     spoti.user_creds = user_creds
 
-    current_status = (
-        spoti.currently_playing()
-    )  # ['item']  ### TODO: handle no songs playing
+    current_status = spoti.currently_playing()  # ["item"]
     if current_status:
         song = spoti.currently_playing()["item"]
     else:  # no songs currently playing
         song = spoti.recently_played_tracks(limit=1)["items"][0][
             "track"
         ]  # get the last played song
-    print(song)
+    print(
+        "{} | {} - {}".format(datetime.now(), song["artists"][0]["name"], song["name"])
+    )
     song_title = song["name"]
     song_artist = song["artists"][0]["name"]
     song_url = song["external_urls"]["spotify"]
@@ -72,11 +79,14 @@ def inlinequery(update, context):
             thumb_height=thumb["height"],
             input_message_content=InputTextMessageContent(
                 "🎵 [{}]({}) by {}".format(
-                    escape_markdown(song_title),
-                    song_url,
-                    escape_markdown(song_artist)
+                    escape_markdown(song_title), song_url, escape_markdown(song_artist)
                 ),
                 parse_mode=ParseMode.MARKDOWN,
+            ),
+            reply_markup=InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [InlineKeyboardButton(text="Listen on Spotify", url=song_url)]
+                ]
             ),
         )
     ]

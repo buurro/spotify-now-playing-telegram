@@ -3,7 +3,8 @@ import tornado.web
 
 from models import User
 from spotify_client import spt
-from utils import config, bot
+from utils import config, bot, bot_description
+from telegram import Animation
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -43,7 +44,9 @@ class SpotifyCallback(tornado.web.RequestHandler):
                     )
                     orm.commit()
 
-                bot.sendMessage(callback_state, "It works!")
+                bot.sendMessage(callback_state, "Logged in!")
+                bot.sendAnimation(callback_state, "CgADBAADXQYAAk_mGVFbgqy2c8nqxBYE")
+                bot.sendMessage(callback_state, bot_description)
                 self.redirect("https://t.me/" + bot.username)
 
         else:

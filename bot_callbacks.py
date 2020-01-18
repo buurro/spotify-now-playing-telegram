@@ -12,11 +12,12 @@ from datetime import datetime
 
 from models import User
 from spotify_client import spt, get_credentials
+from utils import bot_description
 
 
 def help(update, context):
     """Send a message when the command /help is issued."""
-    update.message.reply_text("Help!")
+    update.message.reply_text(bot_description)
 
 
 @orm.db_session
@@ -26,8 +27,10 @@ def start(update, context):
         user_id = str(update.message.from_user.id)
         url = spt.auth_uri(state=user_id)
         update.message.reply_text(
-            "[Tap here to log in with your Spotify account]({})".format(url),
-            parse_mode=ParseMode.MARKDOWN,
+            "Tap the button below to log in with your Spotify account",
+            reply_markup=InlineKeyboardMarkup(
+                inline_keyboard=[[InlineKeyboardButton(text="Login", url=url)]]
+            ),
         )
     else:
         print("There's something wrong")

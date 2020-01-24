@@ -45,7 +45,7 @@ class SpotifyCallback(tornado.web.RequestHandler):
                     orm.commit()
 
                 bot.sendMessage(callback_state, "Logged in!")
-                bot.sendAnimation(callback_state, "CgADBAADXQYAAk_mGVFbgqy2c8nqxBYE")
+                bot.sendAnimation(callback_state, "CgACAgQAAxkDAAIBqF4rRwTDEXJcZtA8P4IFN1ly7WwnAAL0AQACysUEUXEQkHacMB3BGAQ")
                 bot.sendMessage(callback_state, bot_description)
                 self.redirect("https://t.me/" + bot.username)
 

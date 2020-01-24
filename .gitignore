@@ -2,6 +2,7 @@ venv
 config.ini
 .vscode
 .idea
+.flake8
 usercreds.json
 database.sqlite
 *.pyc

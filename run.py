@@ -2,7 +2,7 @@ import tornado.web
 
 from web_views import urls
 from bot_handlers import handlers
-from utils import updater
+from utils import updater, app_port
 
 
 def main():
@@ -17,7 +17,7 @@ def main():
     updater.start_polling()
 
     app = tornado.web.Application(urls)
-    app.listen(8888)
+    app.listen(app_port)
 
     print("Bot is running!")
 

@@ -28,3 +28,5 @@ This will open a panel with a preview of the song you are currently playing on S
 """
 
 animation_id = config["telegram"].get("animation_id", None)
+
+app_port = config["tornado"]["port"]

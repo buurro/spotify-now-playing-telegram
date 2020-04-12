@@ -111,10 +111,12 @@ def callback_query(update, context):
         query.answer(text, show_alert=False)
         return
 
-    print("mmhh")
     try:
         user.spotify.add_to_queue(track_id)
+        print("Add to queue " + track_id)
+        query.answer("Added to your queue", show_alert=False)
     except AuthError:
+        print("Add to queue error " + track_id)
         text = """Authorization needed, please login again.
 To do so, text /start to {}""".format(
             context.bot.name
@@ -127,6 +129,8 @@ To do so, text /start to {}""".format(
                 text = "No active device found"
             if "Restricted device" in e.msg:
                 text = "Your device is not supported"
+            if "Premium required" in e.msg:
+                text = "This requires Spotify Premium"
         query.answer(text, show_alert=False)
 
 

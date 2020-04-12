@@ -26,3 +26,5 @@ Simply type in any chat @spnpbot, then a whitespace.
 
 This will open a panel with a preview of the song you are currently playing on Spotify. Tap on it to send the song right away.
 """
+
+animation_id = config["telegram"].get("animation_id", None)

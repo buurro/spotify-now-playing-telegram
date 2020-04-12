@@ -5,13 +5,13 @@ from telegram import (
     InlineQueryResultArticle,
     InputTextMessageContent,
     InlineKeyboardMarkup,
-    InlineKeyboardButton,
+    InlineKeyboardButton as Button,
+    ReplyKeyboardMarkup,
 )
 from telegram.utils.helpers import escape_markdown
 from datetime import datetime
-
-from models import User
-from spotify_client import spt, get_credentials
+from pyfy.excs import AuthError, ApiError
+from models import User, SpotifyClient
 from utils import bot_description
 
 
@@ -21,80 +21,113 @@ def help(update, context):
 
 
 @orm.db_session
-def start(update, context):
-    """Send a message when the command /start is issued."""
-    if spt.is_oauth_ready:
-        user_id = str(update.message.from_user.id)
-        url = spt.auth_uri(state=user_id)
-        update.message.reply_text(
-            "Tap the button below to log in with your Spotify account",
-            reply_markup=InlineKeyboardMarkup(
-                inline_keyboard=[[InlineKeyboardButton(text="Login", url=url)]]
-            ),
+def get_login_message(user_id):
+    spotify = SpotifyClient()
+    if spotify.is_oauth_ready:
+        url = spotify.auth_uri(state=user_id)
+        reply_text = "Tap the button below to log in with your Spotify account"
+        reply_markup = InlineKeyboardMarkup(
+            inline_keyboard=[[Button(text="Login", url=url)]]
         )
+        return reply_text, reply_markup
     else:
-        print("There's something wrong")
-        update.message.reply_text("There's something wrong")
+        reply_text = "There's something wrong"
+        return reply_text, None
+
+
+def start(update, context):
+    user_id = str(update.message.from_user.id)
+    reply_text, reply_markup = get_login_message(user_id)
+    update.message.reply_text(reply_text, reply_markup=reply_markup)
+
+
+def login_fallback(update, context):
+    keyboard = ReplyKeyboardMarkup([["Yes", "No"]], one_time_keyboard=True)
+
+    update.message.reply_text("Please answer Yes or No", reply_markup=keyboard)
+
+    return 0
 
 
 @orm.db_session
 def inlinequery(update, context):
     """Handle the inline query."""
-    user_id = update.inline_query.from_user.id
-    users = orm.select(u for u in User if u.telegram_id == user_id)[:]
-    if users:
-        user = users[0]
-    else:
+    user_id = str(update.inline_query.from_user.id)
+    user = User.get(telegram_id=user_id)
+    if not user or not user.spotify:
         update.inline_query.answer(
             [],
-            switch_pm_text="Login to Spotify",
+            switch_pm_text="Login with Spotify",
             switch_pm_parameter="spotify_log_in",
             cache_time=0,
         )
-        return 0
+        return
 
-    user_creds = get_credentials(user)
+    song = user.spotify.current_song
+    if not song:
+        song = user.spotify.last_song
 
-    spoti = spt
-    spoti.user_creds = user_creds
+    print("{} | {} - {}".format(datetime.now(), song.artist, song.name))
 
-    current_status = spoti.currently_playing()  # ["item"]
-    if current_status:
-        song = spoti.currently_playing()["item"]
-    else:  # no songs currently playing
-        song = spoti.recently_played_tracks(limit=1)["items"][0][
-            "track"
-        ]  # get the last played song
-    print(
-        "{} | {} - {}".format(datetime.now(), song["artists"][0]["name"], song["name"])
-    )
-    song_title = song["name"]
-    song_artist = song["artists"][0]["name"]
-    song_url = song["external_urls"]["spotify"]
-    thumb = song["album"]["images"][-1]
+    thumb = song.thumbnail
     results = [
         InlineQueryResultArticle(
             id=uuid4(),
-            title="{} - {}".format(song_artist, song_title),
-            url=song_url,
-            thumb_url=thumb["url"],
-            thumb_width=thumb["width"],
-            thumb_height=thumb["height"],
+            title="{} - {}".format(song.artist, song.name),
+            url=song.url,
+            thumb_url=thumb.url,
+            thumb_width=thumb.width,
+            thumb_height=thumb.height,
             input_message_content=InputTextMessageContent(
                 "🎵 [{}]({}) by {}".format(
-                    escape_markdown(song_title), song_url, escape_markdown(song_artist)
+                    escape_markdown(song.name), song.url, escape_markdown(song.artist)
                 ),
                 parse_mode=ParseMode.MARKDOWN,
             ),
             reply_markup=InlineKeyboardMarkup(
                 inline_keyboard=[
-                    [InlineKeyboardButton(text="Listen on Spotify", url=song_url)]
+                    [
+                        Button(text="Open on Spotify", url=song.url),
+                        Button(text="Add to queue", callback_data="queue;" + song.id),
+                    ]
                 ]
             ),
         )
     ]
 
     update.inline_query.answer(results, cache_time=0)
+
+
+@orm.db_session
+def callback_query(update, context):
+    query = update.callback_query
+    user_id = str(update.effective_user.id)
+    command, track_id = query.data.split(";")
+
+    user = User.get(telegram_id=user_id)
+    if not user:
+        # url = "t.me/" + context.bot.username + "?start=modify_playback_state"
+        text = "Please log in by texting /start to {}".format(context.bot.name)
+        query.answer(text, show_alert=False)
+        return
+
+    print("mmhh")
+    try:
+        user.spotify.add_to_queue(track_id)
+    except AuthError:
+        text = """Authorization needed, please login again.
+To do so, text /start to {}""".format(
+            context.bot.name
+        )
+        query.answer(text, show_alert=True)
+    except ApiError as e:
+        text = "An error occurred"
+        if e.msg:
+            if "No active device found" in e.msg:
+                text = "No active device found"
+            if "Restricted device" in e.msg:
+                text = "Your device is not supported"
+        query.answer(text, show_alert=False)
 
 
 def error(update, context):

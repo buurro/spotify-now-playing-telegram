@@ -1,10 +1,9 @@
-from pony import orm
 import tornado.web
 
-from models import User
-from spotify_client import spt
-from utils import config, bot, bot_description
-from telegram import Animation
+from models import User, SpotifyClient
+from utils import bot, bot_description, animation_id
+from pony import orm
+from telegram import ReplyKeyboardRemove
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -20,21 +19,17 @@ class SpotifyCallback(tornado.web.RequestHandler):
             callback_state = self.get_argument("state", "")
             if not callback_state:
                 self.write("spotify no callback state")
-            spoti = spt
+            spotify = SpotifyClient()
             try:
-                user_creds = spoti.build_user_creds(grant=grant)
+                user_creds = spotify.build_user_creds(grant=grant)
             except:
                 self.write("spotify build user creds error")
             else:
-                users = orm.select(u for u in User if u.telegram_id == callback_state)[
-                    :
-                ]
-                if users:
-                    user = users[0]
+                user = User.get(telegram_id=callback_state)
+                if user:
                     user.spotify_id = user_creds.id
                     user.spotify_access_token = user_creds.access_token
                     user.spotify_refresh_token = user_creds.refresh_token
-                    orm.commit()
                 else:
                     user = User(
                         telegram_id=callback_state,
@@ -42,10 +37,16 @@ class SpotifyCallback(tornado.web.RequestHandler):
                         spotify_access_token=user_creds.access_token,
                         spotify_refresh_token=user_creds.refresh_token,
                     )
-                    orm.commit()
 
-                bot.sendMessage(callback_state, "Logged in!")
-                bot.sendAnimation(callback_state, "CgACAgQAAxkDAAIBqF4rRwTDEXJcZtA8P4IFN1ly7WwnAAL0AQACysUEUXEQkHacMB3BGAQ")
+                orm.commit()
+                print("User logged in")
+                bot.sendMessage(
+                    callback_state,
+                    "Successfully logged in!",
+                    reply_markup=ReplyKeyboardRemove(),
+                )
+                if animation_id:
+                    bot.sendAnimation(callback_state, animation_id)
                 bot.sendMessage(callback_state, bot_description)
                 self.redirect("https://t.me/" + bot.username)
 

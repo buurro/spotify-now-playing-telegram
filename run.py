@@ -1,7 +1,7 @@
 import tornado.web
 
 from web_views import urls
-from bot_handlers import command_handlers
+from bot_handlers import handlers
 from utils import updater
 
 
@@ -10,7 +10,7 @@ def main():
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
 
-    for command in command_handlers:
+    for command in handlers:
         dp.add_handler(command)
 
     # Start the Bot

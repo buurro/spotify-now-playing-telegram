@@ -20,7 +20,7 @@ Install the required Python modules with pip:
 ```
 pip install -r requirements.txt
 ```
-Copy `config.ini.example` to `config.ini` and set your Telegram bot token and Spotify app credentials.
+Copy `.env.sample` to `.env` and set your Telegram bot token and Spotify app credentials.
 
 ## Running 
 

@@ -1,8 +1,8 @@
 venv
-config.ini
 .vscode
 .idea
 .flake8
+.env
 usercreds.json
 database.sqlite
 *.pyc

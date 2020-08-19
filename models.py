@@ -1,14 +1,14 @@
 from pony.orm import Database, Required, Optional
 from pyfy import Spotify as Pyfy, ClientCreds, UserCreds
 from pyfy.excs import ApiError
-from configparser import ConfigParser
+from dotenv import load_dotenv
 from dataclasses import dataclass
 
 import typing
+import os
 
 
-config = ConfigParser()
-config.read("config.ini")
+load_dotenv()
 
 db = Database()
 
@@ -93,9 +93,9 @@ class SpotifyClient(Pyfy):
 
         super().__init__(
             client_creds=ClientCreds(
-                client_id=config["spotify"]["client_id"],
-                client_secret=config["spotify"]["client_secret"],
-                redirect_uri=config["spotify"]["client_redirect"],
+                client_id=os.getenv("SPOTIFY_CLIENT_ID"),
+                client_secret=os.getenv("SPOTIFY_CLIENT_SECRET"),
+                redirect_uri=os.getenv("SPOTIFY_CLIENT_REDIRECT"),
                 scopes=scopes,
             ),
             user_creds=user_creds,

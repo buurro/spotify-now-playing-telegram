@@ -1,12 +1,15 @@
 from pyfy import Spotify, ClientCreds, UserCreds
-from utils import config
+from dotenv import load_dotenv
+
+
+load_dotenv()
 
 # Init pyfy
 spotify = Spotify()
 client_creds = ClientCreds(
-    client_id=config["spotify"]["client_id"],
-    client_secret=config["spotify"]["client_secret"],
-    redirect_uri=config["spotify"]["client_redirect"],
+    client_id=os.getenv("SPOTIFY_CLIENT_ID"),
+    client_secret=os.getenv("SPOTIFY_CLIENT_SECRET"),
+    redirect_uri=os.getenv("SPOTIFY_CLIENT_REDIRECT"),
     scopes=["user-read-recently-played", "user-read-playback-state"],
 )
 spotify.client_creds = client_creds

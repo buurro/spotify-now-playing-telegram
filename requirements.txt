@@ -17,6 +17,7 @@ mccabe==0.6.1
 msgpack==0.6.1
 multidict==4.5.2
 pony==0.7.10
+psycopg2-binary==2.8.5
 pycparser==2.19
 pyfy==2.0.2
 pylint==2.3.1

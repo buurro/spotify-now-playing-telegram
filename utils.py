@@ -8,7 +8,21 @@ import os
 
 load_dotenv()
 
-db.bind(provider="sqlite", filename="database.sqlite", create_db=True)
+if os.getenv("DB_PROVIDER") == "sqlite":
+    db.bind(
+        provider="sqlite",
+        filename=os.getenv("DB_FILENAME"),
+        create_db=True,
+    )
+else:
+    db.bind(
+        provider=os.getenv("DB_PROVIDER"),
+        user=os.getenv("DB_USER"),
+        password=os.getenv("DB_PASSWORD"),
+        host=os.getenv("DB_HOST"),
+        database=os.getenv("DB_DATABASE"),
+    )
+
 db.generate_mapping(create_tables=True)
 
 bot = Bot(os.getenv("TELEGRAM_TOKEN"))

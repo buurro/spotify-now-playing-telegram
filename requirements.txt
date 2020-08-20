@@ -19,7 +19,7 @@ multidict==4.5.2
 pony==0.7.10
 psycopg2-binary==2.8.5
 pycparser==2.19
-pyfy==2.0.2
+pyfy==2.0.7
 pylint==2.3.1
 PySocks==1.6.8
 python-dotenv==0.14.0

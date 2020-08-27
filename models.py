@@ -51,6 +51,25 @@ class Song(SpotifyObject):
         self.thumbnail = Image(song["album"]["images"][-1])
 
 
+@dataclass
+class Album(SpotifyObject):
+    artist: str
+    thumbnail: Image
+    name: str
+
+    def __init__(self, album: dict):
+        super().__init__(
+            id=album["id"],
+            url=album["external_urls"]["spotify"],
+            uri=album["uri"],
+            type=album["type"]
+        )
+        self.name = album["name"]
+        self.artist = album["artists"][0]["name"]
+        self.thumbnail = Image(album["images"][-1])
+
+
+@dataclass
 class Playlist(SpotifyObject):
     name: str
     thumbnail: Image
@@ -94,7 +113,7 @@ class Spotify:
     @dataclass
     class Status:
         song: Song
-        context: Context
+        context: typing.Any
 
     @property
     def status(self):
@@ -102,7 +121,11 @@ class Spotify:
         if status:
             song = Song(status["item"])
             context = Context(status["context"])
-            context.playlist = self._client.playlist(context.id)
+            if context.type == "playlist":
+                context = self._client.playlist(context.id)
+            elif context.type == "album":
+                context = self._client.album(context.id)
+
             return self.Status(song=song, context=context)
 
 
@@ -158,8 +181,10 @@ class SpotifyClient(Pyfy):
         )
 
     def playlist(self, id):
-        playlist = super().playlist(id)
-        return Playlist(playlist)
+        return Playlist(super().playlist(id))
+
+    def album(self, id):
+        return Album(super().albums(id))
 
 
 class User(db.Entity):

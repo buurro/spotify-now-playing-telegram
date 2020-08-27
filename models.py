@@ -14,6 +14,14 @@ db = Database()
 
 
 @dataclass
+class SpotifyObject:
+    id: str
+    type: str
+    uri: str
+    url: str
+
+
+@dataclass
 class Image:
     url: str
     height: int
@@ -26,19 +34,52 @@ class Image:
 
 
 @dataclass
-class Song:
-    id: str
-    name: str
+class Song(SpotifyObject):
     artist: str
-    url: str
     thumbnail: Image
+    name: str
 
     def __init__(self, song: dict):
-        self.id = song["id"]
+        super().__init__(
+            id=song["id"],
+            url=song["external_urls"]["spotify"],
+            uri=song["uri"],
+            type=song["type"]
+        )
         self.name = song["name"]
         self.artist = song["artists"][0]["name"]
-        self.url = song["external_urls"]["spotify"]
         self.thumbnail = Image(song["album"]["images"][-1])
+
+
+class Playlist(SpotifyObject):
+    name: str
+    thumbnail: Image
+
+
+    def __init__(self, playlist: dict):
+        super().__init__(
+            id=playlist["id"],
+            url=playlist["external_urls"]["spotify"],
+            uri=playlist["uri"],
+            type=playlist["type"]
+        )
+        self.name = playlist["name"]
+        self.thumbnail = Image(playlist["images"][-1])
+
+
+@dataclass
+class Context(SpotifyObject):
+    playlist: Playlist
+
+    def __init__(self, context: dict):
+        context_id = context["uri"].split(":")[-1]
+        super().__init__(
+            id=context_id,
+            type=context["type"],
+            uri=context["uri"],
+            url=context["href"]
+        )
+
 
 
 class Spotify:
@@ -49,6 +90,21 @@ class Spotify:
             access_token=self.user.spotify_access_token,
             refresh_token=self.user.spotify_refresh_token,
         )
+
+    @dataclass
+    class Status:
+        song: Song
+        context: Context
+
+    @property
+    def status(self):
+        status = self._client.currently_playing()
+        if status:
+            song = Song(status["item"])
+            context = Context(status["context"])
+            context.playlist = self._client.playlist(context.id)
+            return self.Status(song=song, context=context)
+
 
     @property
     def current_song(self) -> typing.Optional[Song]:
@@ -100,6 +156,10 @@ class SpotifyClient(Pyfy):
             ),
             user_creds=user_creds,
         )
+
+    def playlist(self, id):
+        playlist = super().playlist(id)
+        return Playlist(playlist)
 
 
 class User(db.Entity):

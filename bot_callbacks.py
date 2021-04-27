@@ -13,7 +13,7 @@ from datetime import datetime
 from pyfy.excs import AuthError, ApiError
 from models import User, SpotifyClient
 from utils import bot_description
-
+import logging
 
 def help(update, context):
     """Send a message when the command /help is issued."""
@@ -67,7 +67,7 @@ def inlinequery(update, context):
     if not song:
         song = user.spotify.last_song
 
-    print("{} | {} - {}".format(datetime.now(), song.artist, song.name))
+    logging.info("{} - {}".format(song.artist, song.name))
 
     thumb = song.thumbnail
     results = [
@@ -113,10 +113,10 @@ def callback_query(update, context):
 
     try:
         user.spotify.add_to_queue(track_id)
-        print("Add to queue " + track_id)
+        logging.info("Add to queue " + track_id)
         query.answer("Added to your queue", show_alert=False)
     except AuthError:
-        print("Add to queue error " + track_id)
+        logging.error("Add to queue error " + track_id)
         text = """Authorization needed, please login again.
 To do so, text /start to {}""".format(
             context.bot.name
@@ -136,4 +136,4 @@ To do so, text /start to {}""".format(
 
 def error(update, context):
     """Log Errors caused by Updates."""
-    print('Update "%s" caused error "%s"', update, context.error)
+    logging.error('Update "%s" caused error "%s"', update, context.error)

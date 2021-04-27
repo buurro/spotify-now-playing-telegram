@@ -3,6 +3,9 @@ import tornado.web
 from web_views import urls
 from bot_handlers import handlers
 from utils import updater, app_port
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 
 def main():

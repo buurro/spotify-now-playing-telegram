@@ -1,6 +1,7 @@
-from pyfy import Spotify, ClientCreds, UserCreds
-from dotenv import load_dotenv
+import os
 
+from dotenv import load_dotenv
+from pyfy import ClientCreds, Spotify, UserCreds
 
 load_dotenv()
 

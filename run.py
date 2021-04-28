@@ -1,9 +1,10 @@
+import logging
+
 import tornado.web
 
-from web_views import urls
-from bot_handlers import handlers
-from utils import updater, app_port
-import logging
+from bot.handlers import handlers
+from bot.utils import app_port, updater
+from web.views import urls
 
 logging.basicConfig(level=logging.INFO)
 

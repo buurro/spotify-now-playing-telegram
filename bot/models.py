@@ -1,12 +1,13 @@
-from pony.orm import Database, Required, Optional
-from pyfy import Spotify as Pyfy, ClientCreds, UserCreds
-from pyfy.excs import ApiError
-from dotenv import load_dotenv
+import os
+import typing
 from dataclasses import dataclass
 
-import typing
-import os
-
+from dotenv import load_dotenv
+from pony.orm import Database, Optional, Required
+from pyfy import ClientCreds
+from pyfy import Spotify as Pyfy
+from pyfy import UserCreds
+from pyfy.excs import ApiError
 
 load_dotenv()
 

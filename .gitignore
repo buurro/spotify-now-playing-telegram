@@ -7,3 +7,4 @@ usercreds.json
 database.sqlite
 *.pyc
 __pycache__
+.python-version

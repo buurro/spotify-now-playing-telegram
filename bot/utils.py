@@ -1,10 +1,10 @@
+import os
+
 from dotenv import load_dotenv
 from telegram import Bot
 from telegram.ext import Updater
-from models import db
 
-import os
-
+from .models import db
 
 load_dotenv()
 

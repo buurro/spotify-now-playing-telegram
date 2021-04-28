@@ -1,19 +1,22 @@
+import logging
+from datetime import datetime
 from uuid import uuid4
+
 from pony import orm
+from pyfy.excs import ApiError, AuthError
+from telegram import InlineKeyboardButton as Button
 from telegram import (
-    ParseMode,
+    InlineKeyboardMarkup,
     InlineQueryResultArticle,
     InputTextMessageContent,
-    InlineKeyboardMarkup,
-    InlineKeyboardButton as Button,
+    ParseMode,
     ReplyKeyboardMarkup,
 )
 from telegram.utils.helpers import escape_markdown
-from datetime import datetime
-from pyfy.excs import AuthError, ApiError
-from models import User, SpotifyClient
-from utils import bot_description
-import logging
+
+from .models import SpotifyClient, User
+from .utils import bot_description
+
 
 def help(update, context):
     """Send a message when the command /help is issued."""
@@ -102,7 +105,7 @@ def inlinequery(update, context):
 def callback_query(update, context):
     query = update.callback_query
     user_id = str(update.effective_user.id)
-    command, track_id = query.data.split(";")
+    track_id = query.data.split(";")[-1]
 
     user = User.get(telegram_id=user_id)
     if not user:
@@ -117,10 +120,9 @@ def callback_query(update, context):
         query.answer("Added to your queue", show_alert=False)
     except AuthError:
         logging.error("Add to queue error " + track_id)
-        text = """Authorization needed, please login again.
-To do so, text /start to {}""".format(
-            context.bot.name
-        )
+        text = (
+            "Authorization needed, please login again.\nTo do so, text /start to {}"
+        ).format(context.bot.name)
         query.answer(text, show_alert=True)
     except ApiError as e:
         text = "An error occurred"

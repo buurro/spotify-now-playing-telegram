@@ -66,7 +66,8 @@ def inlinequery(update, context):
         )
         return
 
-    song = user.spotify.current_song
+    status = user.spotify.status
+    song = status.song
     if not song:
         song = user.spotify.last_song
 
@@ -97,6 +98,43 @@ def inlinequery(update, context):
             ),
         )
     ]
+
+    if status.context:
+        thumb = status.context.thumbnail
+        if status.context.type == "album":
+            title = "{} - {}".format(status.context.artist, status.context.name)
+            message_content = "🎧 [{}]({}) by {}".format(
+                escape_markdown(status.context.name),
+                status.context.url,
+                escape_markdown(status.context.artist)
+            )
+        else:
+            title = status.context.name
+            message_content = "🎧 [{}]({})".format(
+                escape_markdown(status.context.name), status.context.url
+            )
+        results.append(
+            InlineQueryResultArticle(
+                id=uuid4(),
+                title=title,
+                url=status.context.url,
+                description=status.context.type,
+                thumb_url=thumb.url,
+                thumb_width=thumb.width,
+                thumb_height=thumb.height,
+                input_message_content=InputTextMessageContent(
+                    message_content,
+                    parse_mode=ParseMode.MARKDOWN,
+                ),
+                reply_markup=InlineKeyboardMarkup(
+                    inline_keyboard=[
+                        [
+                            Button(text="Open on Spotify", url=status.context.url),
+                        ]
+                    ]
+                )
+            )
+        )
 
     update.inline_query.answer(results, cache_time=0)
 

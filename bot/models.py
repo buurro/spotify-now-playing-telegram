@@ -92,12 +92,14 @@ class Spotify:
         if not status:
             return None
 
-        context = status["context"]
-        context_id = context["uri"].split(":")[-1]
-        context_data = getattr(self._client, context["type"])(context_id)
-
         song = Song(song)
-        context = Context(context_data)
+
+        context = status["context"]
+        if context:
+            context_id = context["uri"].split(":")[-1]
+            context_data = getattr(self._client, context["type"])(context_id)
+
+            context = Context(context_data)
 
         return self.Status(song=song, context=context)
 

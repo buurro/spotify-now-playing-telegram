@@ -1,7 +1,8 @@
-import tornado.web
+import logging
 
-from models import User, SpotifyClient
-from utils import bot, bot_description, animation_id
+import tornado.web
+from bot.models import SpotifyClient, User
+from bot.utils import animation_id, bot, bot_description
 from pony import orm
 from telegram import ReplyKeyboardRemove
 
@@ -39,7 +40,7 @@ class SpotifyCallback(tornado.web.RequestHandler):
                     )
 
                 orm.commit()
-                print("User logged in")
+                logging.info("User logged in")
                 bot.sendMessage(
                     callback_state,
                     "Successfully logged in!",

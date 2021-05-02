@@ -1,19 +1,21 @@
+import logging
 from uuid import uuid4
+
 from pony import orm
+from pyfy.excs import ApiError, AuthError
+from telegram import InlineKeyboardButton as Button
 from telegram import (
-    ParseMode,
+    InlineKeyboardMarkup,
     InlineQueryResultArticle,
     InputTextMessageContent,
-    InlineKeyboardMarkup,
-    InlineKeyboardButton as Button,
+    ParseMode,
     ReplyKeyboardMarkup,
 )
 from telegram.utils.helpers import escape_markdown
-from datetime import datetime
-from pyfy.excs import AuthError, ApiError
-from models import User, SpotifyClient
-from utils import bot_description
-import logging
+
+from .models import SpotifyClient, User
+from .utils import bot_description
+
 
 def help(update, context):
     """Send a message when the command /help is issued."""
@@ -53,7 +55,7 @@ def login_fallback(update, context):
 def inlinequery(update, context):
     """Handle the inline query."""
     user_id = str(update.inline_query.from_user.id)
-    user = User.get(telegram_id=user_id)
+    user: User = User.get(telegram_id=user_id)
     if not user or not user.spotify:
         update.inline_query.answer(
             [],
@@ -63,9 +65,10 @@ def inlinequery(update, context):
         )
         return
 
-    song = user.spotify.current_song
+    status = user.spotify.status
+    song = status.song
     if not song:
-        song = user.spotify.last_song
+        logging.warning("no song found")
 
     logging.info("{} - {}".format(song.artist, song.name))
 
@@ -95,6 +98,43 @@ def inlinequery(update, context):
         )
     ]
 
+    if status.context:
+        thumb = status.context.thumbnail
+        if status.context.type == "album":
+            title = "{} - {}".format(status.context.artist, status.context.name)
+            message_content = "🎧 [{}]({}) by {}".format(
+                escape_markdown(status.context.name),
+                status.context.url,
+                escape_markdown(status.context.artist),
+            )
+        else:
+            title = status.context.name
+            message_content = "🎧 [{}]({})".format(
+                escape_markdown(status.context.name), status.context.url
+            )
+        results.append(
+            InlineQueryResultArticle(
+                id=uuid4(),
+                title=title,
+                url=status.context.url,
+                description=status.context.type,
+                thumb_url=thumb.url,
+                thumb_width=thumb.width,
+                thumb_height=thumb.height,
+                input_message_content=InputTextMessageContent(
+                    message_content,
+                    parse_mode=ParseMode.MARKDOWN,
+                ),
+                reply_markup=InlineKeyboardMarkup(
+                    inline_keyboard=[
+                        [
+                            Button(text="Open on Spotify", url=status.context.url),
+                        ]
+                    ]
+                ),
+            )
+        )
+
     update.inline_query.answer(results, cache_time=0)
 
 
@@ -102,7 +142,7 @@ def inlinequery(update, context):
 def callback_query(update, context):
     query = update.callback_query
     user_id = str(update.effective_user.id)
-    command, track_id = query.data.split(";")
+    track_id = query.data.split(";")[-1]
 
     user = User.get(telegram_id=user_id)
     if not user:
@@ -117,10 +157,9 @@ def callback_query(update, context):
         query.answer("Added to your queue", show_alert=False)
     except AuthError:
         logging.error("Add to queue error " + track_id)
-        text = """Authorization needed, please login again.
-To do so, text /start to {}""".format(
-            context.bot.name
-        )
+        text = (
+            "Authorization needed, please login again.\nTo do so, text /start to {}"
+        ).format(context.bot.name)
         query.answer(text, show_alert=True)
     except ApiError as e:
         text = "An error occurred"

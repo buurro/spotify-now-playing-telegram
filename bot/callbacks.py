@@ -1,5 +1,4 @@
 import logging
-from datetime import datetime
 from uuid import uuid4
 
 from pony import orm
@@ -56,7 +55,7 @@ def login_fallback(update, context):
 def inlinequery(update, context):
     """Handle the inline query."""
     user_id = str(update.inline_query.from_user.id)
-    user = User.get(telegram_id=user_id)
+    user: User = User.get(telegram_id=user_id)
     if not user or not user.spotify:
         update.inline_query.answer(
             [],
@@ -69,7 +68,7 @@ def inlinequery(update, context):
     status = user.spotify.status
     song = status.song
     if not song:
-        song = user.spotify.last_song
+        logging.warning("no song found")
 
     logging.info("{} - {}".format(song.artist, song.name))
 
@@ -106,7 +105,7 @@ def inlinequery(update, context):
             message_content = "🎧 [{}]({}) by {}".format(
                 escape_markdown(status.context.name),
                 status.context.url,
-                escape_markdown(status.context.artist)
+                escape_markdown(status.context.artist),
             )
         else:
             title = status.context.name
@@ -132,7 +131,7 @@ def inlinequery(update, context):
                             Button(text="Open on Spotify", url=status.context.url),
                         ]
                     ]
-                )
+                ),
             )
         )
 

@@ -4,22 +4,12 @@ from dataclasses import dataclass
 
 from dotenv import load_dotenv
 from pony.orm import Database, Optional, Required
-from pyfy import ClientCreds
+from pyfy import ClientCreds, UserCreds
 from pyfy import Spotify as Pyfy
-from pyfy import UserCreds
-from pyfy.excs import ApiError
 
 load_dotenv()
 
 db = Database()
-
-
-@dataclass
-class SpotifyObject:
-    id: str
-    type: str
-    uri: str
-    url: str
 
 
 @dataclass
@@ -35,71 +25,46 @@ class Image:
 
 
 @dataclass
+class SpotifyObject:
+    id: str
+    name: str
+    type: str
+    uri: str
+    url: str
+    thumbnail: Image
+
+
+@dataclass
 class Song(SpotifyObject):
     artist: str
-    thumbnail: Image
-    name: str
 
     def __init__(self, song: dict):
         super().__init__(
             id=song["id"],
             url=song["external_urls"]["spotify"],
             uri=song["uri"],
-            type=song["type"]
+            type=song["type"],
+            thumbnail=Image(song["album"]["images"][-1]),
+            name=song["name"],
         )
-        self.name = song["name"]
         self.artist = song["artists"][0]["name"]
-        self.thumbnail = Image(song["album"]["images"][-1])
-
-
-@dataclass
-class Album(SpotifyObject):
-    artist: str
-    thumbnail: Image
-    name: str
-
-    def __init__(self, album: dict):
-        super().__init__(
-            id=album["id"],
-            url=album["external_urls"]["spotify"],
-            uri=album["uri"],
-            type=album["type"]
-        )
-        self.name = album["name"]
-        self.artist = album["artists"][0]["name"]
-        self.thumbnail = Image(album["images"][-1])
-
-
-@dataclass
-class Playlist(SpotifyObject):
-    name: str
-    thumbnail: Image
-
-
-    def __init__(self, playlist: dict):
-        super().__init__(
-            id=playlist["id"],
-            url=playlist["external_urls"]["spotify"],
-            uri=playlist["uri"],
-            type=playlist["type"]
-        )
-        self.name = playlist["name"]
-        self.thumbnail = Image(playlist["images"][-1])
 
 
 @dataclass
 class Context(SpotifyObject):
-    playlist: Playlist
+    artist: typing.Optional[str]
 
     def __init__(self, context: dict):
-        context_id = context["uri"].split(":")[-1]
         super().__init__(
-            id=context_id,
+            id=context["id"],
             type=context["type"],
             uri=context["uri"],
-            url=context["href"]
+            url=context["external_urls"]["spotify"],
+            thumbnail=Image(context["images"][-1]),
+            name=context["name"],
         )
-
+        if "artists" in context:
+            self.artist = context["artists"][0]["name"]
 
 
 class Spotify:
@@ -120,27 +85,21 @@ class Spotify:
     def status(self):
         status = self._client.currently_playing()
         if status:
-            song = Song(status["item"])
-            context = Context(status["context"])
-            if context.type == "playlist":
-                context = self._client.playlist(context.id)
-            elif context.type == "album":
-                context = self._client.album(context.id)
+            song = status["item"]
+        else:  # get last played track
+            status = self._client.recently_played_tracks(limit=1)["items"][0]
+            song = status["track"]
+        if not status:
+            return None
 
-            return self.Status(song=song, context=context)
+        context = status["context"]
+        context_id = context["uri"].split(":")[-1]
+        context_data = getattr(self._client, context["type"])(context_id)
 
+        song = Song(song)
+        context = Context(context_data)
 
-    @property
-    def current_song(self) -> typing.Optional[Song]:
-        current_status = self._client.currently_playing()
-        if current_status:
-            song = current_status["item"]
-            return Song(song)
-
-    @property
-    def last_song(self) -> Song:
-        song = self._client.recently_played_tracks(limit=1)["items"][0]["track"]
-        return Song(song)
+        return self.Status(song=song, context=context)
 
     def add_to_queue(self, track_id: str):
         self._client.queue(track_id)
@@ -151,18 +110,12 @@ class SpotifyClient(Pyfy):
         self,
         access_token=None,
         refresh_token=None,
-        # modify_playback_state=False
     ):
         scopes = [
             "user-read-recently-played",
             "user-read-playback-state",
             "user-modify-playback-state",
         ]
-
-        """
-        if modify_playback_state:
-            scopes.append("user-modify-playback-state")
-        """
 
         user_creds = None
 
@@ -181,11 +134,11 @@ class SpotifyClient(Pyfy):
             user_creds=user_creds,
         )
 
-    def playlist(self, id):
-        return Playlist(super().playlist(id))
+    def artist(self, *args, **kwargs):
+        return super().artists(*args, **kwargs)
 
-    def album(self, id):
-        return Album(super().albums(id))
+    def album(self, *args, **kwargs):
+        return super().albums(*args, **kwargs)
 
 
 class User(db.Entity):
@@ -197,5 +150,5 @@ class User(db.Entity):
     # allowed_scopes = Required(List(str))
 
     @property
-    def spotify(self):
+    def spotify(self) -> Spotify:
         return Spotify(self)

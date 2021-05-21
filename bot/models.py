@@ -4,8 +4,9 @@ from dataclasses import dataclass
 
 from dotenv import load_dotenv
 from pony.orm import Database, Optional, Required
-from pyfy import ClientCreds, UserCreds
+from pyfy import ApiError, ClientCreds
 from pyfy import Spotify as Pyfy
+from pyfy import UserCreds
 
 load_dotenv()
 
@@ -97,9 +98,13 @@ class Spotify:
         context = status["context"]
         if context:
             context_id = context["uri"].split(":")[-1]
-            context_data = getattr(self._client, context["type"])(context_id)
-
-            context = Context(context_data)
+            try:
+                context_data = getattr(self._client, context["type"])(
+                    context_id + "123"
+                )
+                context = Context(context_data)
+            except ApiError:
+                context = None
 
         return self.Status(song=song, context=context)
 

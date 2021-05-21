@@ -99,9 +99,7 @@ class Spotify:
         if context:
             context_id = context["uri"].split(":")[-1]
             try:
-                context_data = getattr(self._client, context["type"])(
-                    context_id + "123"
-                )
+                context_data = getattr(self._client, context["type"])(context_id)
                 context = Context(context_data)
             except ApiError:
                 context = None

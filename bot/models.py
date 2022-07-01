@@ -96,6 +96,11 @@ class Spotify:
         song = Song(song)
 
         context = status["context"]
+
+        # remove the context if sharing from "Liked Songs"
+        if context and context["type"] == "collection":
+            context = None
+
         if context:
             context_id = context["uri"].split(":")[-1]
             try:

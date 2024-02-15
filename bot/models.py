@@ -21,8 +21,8 @@ class Image:
 
     def __init__(self, image: dict):
         self.url = image["url"]
-        self.height = int(image["height"])
-        self.width = int(image["width"])
+        self.height = int(image["height"] or 0)
+        self.width = int(image["width"] or 0)
 
 
 @dataclass

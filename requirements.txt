@@ -9,7 +9,7 @@ certifi==2023.7.22
 chardet==4.0.0
 charset-normalizer==3.3.2
 frozenlist==1.4.0
-idna==2.10
+idna==3.7
 msgpack==1.0.2
 multidict==5.1.0
 pony==0.7.14

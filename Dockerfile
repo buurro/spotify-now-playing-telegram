@@ -1,5 +1,14 @@
-FROM python:3.8.16-slim-buster
-COPY ./requirements.txt /src/requirements.txt
-RUN pip install -r /src/requirements.txt
+FROM python:3.9.16-slim-buster
+
+RUN pip install pipx && \
+	pipx install poetry && \
+	export PATH="/root/.local/bin:$PATH"
+
+WORKDIR /src
+
+COPY pyproject.toml poetry.lock /src
+
+RUN /root/.local/bin/poetry install
+
 COPY . /src
-CMD [ "python", "/src/run.py" ]
+CMD [ "/root/.local/bin/poetry", "run", "python", "/src/run.py" ]

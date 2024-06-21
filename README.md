@@ -10,15 +10,15 @@ Try it now! [@spnpbot](https://t.me/spnpbot)
 
 * Register an application on the Spotify developer dashboard
 * Register a bot on Telegram through [BotFather](https://t.me/BotFather) and enable inline mode
-* Python 3.6+
+* Python 3.9
 
 
 ### Installation
 
-Install the required Python modules with pip:
+Install the required Python modules with poetry:
 
 ```
-pip install -r requirements.txt
+poetry install
 ```
 Copy `.env.sample` to `.env` and set your Telegram bot token and Spotify app credentials.
 
@@ -27,5 +27,5 @@ Copy `.env.sample` to `.env` and set your Telegram bot token and Spotify app cre
 Just run:
 
 ```
-python run.py
+poetry run python run.py
 ```

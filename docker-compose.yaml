@@ -1,0 +1,12 @@
+services:
+  spnp-bot:
+    image: spnp-bot:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports:
+      - 8888:8888
+    tmpfs:
+      - /tmp/gifs

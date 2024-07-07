@@ -1,6 +1,7 @@
 import os
 import typing
 from dataclasses import dataclass
+from functools import lru_cache
 
 from dotenv import load_dotenv
 from pony.orm import Database, Optional, Required
@@ -50,6 +51,8 @@ class Song(SpotifyObject):
         )
         self.artist = song["artists"][0]["name"]
 
+    def __hash__(self):
+        return hash(self.id)
 
 @dataclass
 class Context(SpotifyObject):
@@ -118,6 +121,7 @@ class Spotify:
     def add_to_queue(self, track_id: str):
         self._client.queue(track_id)
 
+    @lru_cache(maxsize=50)
     def get_song_bpm(self, song: Song) -> float:
         raw_bpm = self._client.tracks_audio_features(song.id)["tempo"]
         return float(round(raw_bpm))

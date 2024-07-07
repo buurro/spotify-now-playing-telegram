@@ -69,11 +69,18 @@ class GifTemplate:
         return template_url
 
 
-TEMPLATES: dict[str, GifTemplate] = {}
-for path in Path("bot/bpm_gifs/generator/templates").glob("*.mp4"):
-    template = GifTemplate(path)
+def init_warm_templates() -> dict[str, GifTemplate]:
+    templates: dict[str, GifTemplate] = {}
+    
+    for path in Path("bot/bpm_gifs/generator/templates").glob("*.mp4"):
+        template = GifTemplate(path)
 
-    logging.info(f"Loaded template: {template.key}")
-    template.get_preview_content()
+        logging.info(f"Loaded template: {template.key}")
+        template.get_preview_content()
 
-    TEMPLATES[template.key] = template
+        templates[template.key] = template
+
+    return templates
+
+
+TEMPLATES = init_warm_templates()

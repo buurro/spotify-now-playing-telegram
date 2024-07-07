@@ -29,8 +29,10 @@ class GifRenderHandler(tornado.web.RequestHandler):
         target_bpm = self.get_argument("bpm", "60.0")
         target_bpm = float(target_bpm)
 
-        assert target_bpm > 20, "Target BPM must be greater than 20"
-        assert target_bpm < 300, "Target BPM must be less than 200"
+        if target_bpm < 20:
+            raise ValueError("Target BPM must be greater than 20")
+        if target_bpm > 300:
+            raise ValueError("Target BPM must be less than 200")
 
         preset = TEMPLATES.get(template_name)
 

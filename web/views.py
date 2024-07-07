@@ -1,15 +1,42 @@
 import logging
 
 import tornado.web
-from bot.models import SpotifyClient, User
-from bot.utils import animation_id, bot, bot_description
 from pony import orm
 from telegram import ReplyKeyboardRemove
+
+from bot.bpm_gifs.generator.presets import TEMPLATES
+from bot.models import SpotifyClient, User
+from bot.utils.config import animation_id, bot, bot_description
 
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
         self.write("Hello, world")
+
+
+class GifPreviewHandler(tornado.web.RequestHandler):
+    def get(self):
+        template_name = self.get_argument("t", None)
+        preset = TEMPLATES.get(template_name)
+        self.set_header("Content-Type", "image/png")
+        preview_content = preset.get_preview_content()
+        self.write(preview_content)
+
+
+class GifRenderHandler(tornado.web.RequestHandler):
+    def get(self):
+        template_name = self.get_argument("t", None)
+        target_bpm = self.get_argument("bpm", "60.0")
+        target_bpm = float(target_bpm)
+
+        assert target_bpm > 20, "Target BPM must be greater than 20"
+        assert target_bpm < 300, "Target BPM must be less than 200"
+
+        preset = TEMPLATES.get(template_name)
+
+        self.set_header("Content-Type", "video/mp4")
+        preview_content = preset.render_as_target_bpm(target_bpm)
+        self.write(preview_content)
 
 
 class SpotifyCallback(tornado.web.RequestHandler):
@@ -28,13 +55,17 @@ class SpotifyCallback(tornado.web.RequestHandler):
             else:
                 user = User.get(telegram_id=callback_state)
                 if user:
-                    user.spotify_id = user_creds.id
+                    user.spotify_id = user_creds.id or "FIXME"
+                    #FIXME: spotify user id is not using atm but
+                    # migration issue probably
                     user.spotify_access_token = user_creds.access_token
                     user.spotify_refresh_token = user_creds.refresh_token
                 else:
                     user = User(
                         telegram_id=callback_state,
-                        spotify_id=user_creds.id,
+                        spotify_id=user_creds.id or "FIXME",
+                        #FIXME: spotify user id is not using atm but migration
+                        # issue probably
                         spotify_access_token=user_creds.access_token,
                         spotify_refresh_token=user_creds.refresh_token,
                     )
@@ -55,4 +86,9 @@ class SpotifyCallback(tornado.web.RequestHandler):
             self.write("spotify no code")
 
 
-urls = [(r"/", MainHandler), (r"/spotify/callback", SpotifyCallback)]
+urls = [
+    (r"/", MainHandler),
+    (r"/spotify/callback", SpotifyCallback),
+    (r"/gif/preview", GifPreviewHandler),
+    (r"/gif/bpm", GifRenderHandler),
+]

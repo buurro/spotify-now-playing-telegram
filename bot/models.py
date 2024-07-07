@@ -118,6 +118,10 @@ class Spotify:
     def add_to_queue(self, track_id: str):
         self._client.queue(track_id)
 
+    def get_song_bpm(self, song: Song) -> float:
+        raw_bpm = self._client.tracks_audio_features(song.id)["tempo"]
+        return float(round(raw_bpm))
+
 
 class SpotifyClient(Pyfy):
     def __init__(

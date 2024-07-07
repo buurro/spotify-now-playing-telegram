@@ -46,11 +46,8 @@ def adjust_video_tempo(video_path: Path, video_bpm: float, target_bpm: float) ->
         ffmpeg.execute()
         with open(output_file, 'rb') as f:
             content = f.read()
-    except Exception as e:
-        raise e
     finally:
-        if output_file.exists():
-            output_file.unlink()
+        output_file.unlink(missing_ok=True)
 
     logger.info(f"Video adjusted: {output_file}")
     return content

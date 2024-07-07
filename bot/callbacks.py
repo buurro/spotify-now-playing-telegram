@@ -13,8 +13,9 @@ from telegram import (
 )
 from telegram.utils.helpers import escape_markdown
 
-from .models import SpotifyClient, User
-from .utils import bot_description
+from bot.models import SpotifyClient, User
+from bot.utils.config import bot_description
+from bot.utils.format_song import format_song_markdown
 
 
 def help(update, context):
@@ -52,7 +53,7 @@ def login_fallback(update, context):
 
 
 @orm.db_session
-def inlinequery(update, context):
+def inline_share_song(update, context):
     """Handle the inline query."""
     user_id = str(update.inline_query.from_user.id)
     user: User = User.get(telegram_id=user_id)
@@ -82,9 +83,7 @@ def inlinequery(update, context):
             thumb_width=thumb.width,
             thumb_height=thumb.height,
             input_message_content=InputTextMessageContent(
-                "🎵 [{}]({}) by {}".format(
-                    escape_markdown(song.name), song.url, escape_markdown(song.artist)
-                ),
+                format_song_markdown(song),
                 parse_mode=ParseMode.MARKDOWN,
             ),
             reply_markup=InlineKeyboardMarkup(

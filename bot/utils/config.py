@@ -1,10 +1,11 @@
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 from telegram import Bot
 from telegram.ext import Updater
 
-from .models import db
+from bot.models import db
 
 load_dotenv()
 
@@ -43,3 +44,5 @@ This will open a panel with a preview of the song you are currently playing on S
 animation_id = os.getenv("TELEGRAM_ANIMATION_ID")
 
 app_port = os.getenv("TORNADO_PORT")
+
+tmp_gifs_dir = Path(os.getenv("TEMP_VIDEO_TRANSCODER_PATH", "/tmp/gifs"))

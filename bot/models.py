@@ -88,7 +88,11 @@ class Spotify:
         if status:
             song = status["item"]
         else:  # get last played track
-            status = self._client.recently_played_tracks(limit=1)["items"][0]
+            recent_tracks = self._client.recently_played_tracks(limit=1)
+            if not recent_tracks:
+                return None
+
+            status = recent_tracks["items"][0]
             song = status["track"]
         if not status:
             return None
@@ -153,6 +157,7 @@ class SpotifyClient(Pyfy):
 
 class User(db.Entity):
     telegram_id = Required(str)
+    # FIXME it generates NOT NULL constraint failed: user.spotify_id
     spotify_id = Optional(str)
     spotify_access_token = Optional(str)
     spotify_refresh_token = Optional(str)

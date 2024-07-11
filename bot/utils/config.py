@@ -46,3 +46,5 @@ animation_id = os.getenv("TELEGRAM_ANIMATION_ID")
 app_port = os.getenv("TORNADO_PORT")
 
 tmp_gifs_dir = Path(os.getenv("TEMP_VIDEO_TRANSCODER_PATH", "/tmp/gifs"))
+if not tmp_gifs_dir.exists():
+    tmp_gifs_dir.mkdir()

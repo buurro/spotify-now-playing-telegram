@@ -18,7 +18,7 @@ class GifPreviewHandler(tornado.web.RequestHandler):
     def get(self):
         template_name = self.get_argument("t", None)
         preset = TEMPLATES.get(template_name)
-        self.set_header("Content-Type", "image/png")
+        self.set_header("Content-Type", "image/jpeg")
         preview_content = preset.get_preview_content()
         self.write(preview_content)
 

@@ -1,6 +1,7 @@
 import logging
 import os
-from functools import lru_cache
+from functools import lru_cache, cache
+from io import BytesIO
 from pathlib import Path
 from typing import Optional
 from urllib.parse import urljoin
@@ -17,8 +18,12 @@ class GifTemplate:
     def __init__(self, path: Path):
         self.path = path
 
+    @cache
     def get_preview_content(self):
-        return self.preview.getdata()
+        buff = BytesIO()
+        self.preview.save(buff, format="JPEG")
+        buff.seek(0)
+        return buff.read()
 
     @property
     def preview(self):

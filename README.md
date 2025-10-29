@@ -1,5 +1,8 @@
 # Now Playing on Spotify Telegram Bot
 
+> [!WARNING]
+> **ARCHIVED**: This version is no longer maintained. Please visit the new version at https://github.com/buurro/spnpbot
+
 Simple Telegram bot that lets you share on Telegram what you're listening on Spotify.
 
 Try it now! [@spnpbot](https://t.me/spnpbot)
